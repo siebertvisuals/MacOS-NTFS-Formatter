@@ -1,47 +1,47 @@
-# NTFS Formatter pour macOS
+# NTFS Formatter for macOS
 
-Une app à fenêtre unique pour formater un disque externe ou une clé USB (exFAT, FAT32…) en **NTFS** depuis un Mac.
-Tout est inclus dans l'app : **rien à installer** (ni Homebrew, ni Terminal).
+A single-window app to format an external disk or USB drive (exFAT, FAT32…) as **NTFS** from a Mac.
+Everything is included in the app: **nothing to install** (no Homebrew, no Terminal).
 
-## Pour les utilisateurs
+## For users
 
-1. Télécharge `NTFSFormatter.zip` (onglet *Releases*), double-clique pour le décompresser.
-2. Glisse **NTFSFormatter** dans le dossier *Applications*.
-3. **Premier lancement** : l'app n'est pas signée par Apple, macOS la bloque une première fois.
-   - Double-clique sur l'app : un message d'avertissement apparaît, ferme-le.
-   - Ouvre **Réglages Système → Confidentialité et sécurité**, descends en bas de la page,
-     clique sur **Ouvrir quand même** à côté de « NTFSFormatter », puis saisis ton mot de passe.
-   - Cette étape n'est à faire qu'une seule fois.
-4. Branche ton disque, choisis-le dans la liste, clique sur **Formater en NTFS…** et confirme.
+1. Download `NTFSFormatter.zip` from the [Releases](../../releases) tab and double-click it to unzip.
+2. Drag **NTFSFormatter** into your *Applications* folder.
+3. **First launch:** the app is not notarized by Apple, so macOS blocks it the first time.
+   - Double-click the app: a warning appears, close it.
+   - Open **System Settings → Privacy & Security**, scroll to the bottom,
+     click **Open Anyway** next to "NTFSFormatter", then enter your password.
+   - You only have to do this once.
+4. Plug in your disk, select it in the list, click **Format as NTFS…** and confirm.
 
-> ⚠️ **Tout le contenu du disque est effacé**, partitions comprises. C'est irréversible.
-> Seuls les disques externes sont proposés : le disque de ton Mac n'apparaît jamais.
+> ⚠️ **Everything on the disk is erased**, partitions included. This cannot be undone.
+> Only external disks are listed: your Mac's own disk never appears.
 
-## À savoir
+## Good to know
 
-- macOS monte le NTFS en **lecture seule**. Le disque est destiné à Windows ; pour y écrire depuis le Mac,
-  il faut un pilote tiers (Paragon, Tuxera, iBoysoft, ou ntfs-3g avec macFUSE).
-- Cette version est pour **Mac Apple Silicon** (M1 et plus récents), macOS 13 ou plus.
-- Fourni tel quel, sans garantie.
+- macOS mounts NTFS **read-only**. The disk is meant for Windows; to write to it from a Mac
+  you need a third-party driver (Paragon, Tuxera, iBoysoft, or ntfs-3g with macFUSE).
+- This version is for **Apple Silicon Macs** (M1 and later), macOS 13 or newer.
+- Provided as is, without warranty.
 
-## Pour les développeurs
+## For developers
 
 ```bash
-brew install ntfs-3g-mac     # source de mkntfs, copié dans l'app par build.sh
-xcode-select --install       # compilateur Swift
-./build.sh                   # produit NTFSFormatter.app et NTFSFormatter.zip
+brew install ntfs-3g-mac     # source of mkntfs, copied into the app by build.sh
+xcode-select --install       # Swift compiler
+./build.sh                   # produces NTFSFormatter.app and NTFSFormatter.zip
 ```
 
-`build.sh` embarque `mkntfs` et ses bibliothèques dans `Contents/Resources/ntfs` et réécrit leurs chemins.
-L'app lance ensuite le formatage via la fenêtre de mot de passe système (`osascript … with administrator privileges`).
+`build.sh` bundles `mkntfs` and its libraries into `Contents/Resources/ntfs` and rewrites their paths.
+The app then runs the format through the system password prompt (`osascript … with administrator privileges`).
 
-Une version en ligne de commande existe aussi : `format_ntfs.sh`.
+A command-line version is also available: `format_ntfs.sh`.
 
-## Licences
+## Licenses
 
-Le code de cette app (interface Swift, scripts) est sous **licence MIT** : voir [LICENSE](LICENSE).
+The code of this app (Swift interface, scripts) is released under the **MIT license**: see [LICENSE](LICENSE).
 
-L'app embarque des composants tiers, qui gardent leur propre licence :
-`mkntfs` / `libntfs-3g` (NTFS-3G) sous **GPL v2**, et `libintl` (gettext) sous **LGPL**.
-Leurs textes sont dans `NTFSFormatter.app/Contents/Resources/licenses/`.
-Code source de NTFS-3G : <https://github.com/tuxera/ntfs-3g>.
+The app bundles third-party components that keep their own licenses:
+`mkntfs` / `libntfs-3g` (NTFS-3G) under **GPL v2**, and `libintl` (gettext) under **LGPL**.
+Their texts are in `NTFSFormatter.app/Contents/Resources/licenses/`.
+NTFS-3G source code: <https://github.com/tuxera/ntfs-3g>.

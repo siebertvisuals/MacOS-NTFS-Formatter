@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Modèle
+// MARK: - Model
 
 struct ExternalDisk: Identifiable, Hashable {
     let id: String          // ex. "disk5"
@@ -34,7 +34,7 @@ func diskutilPlist(_ args: [String]) -> [String: Any]? {
     return dict
 }
 
-/// Disques externes physiques uniquement : le disque interne n'est jamais proposé.
+/// External physical disks only: the internal disk is never offered.
 func listExternalDisks() -> [ExternalDisk] {
     guard let list = diskutilPlist(["list", "-plist", "external", "physical"]),
           let ids = list["WholeDisks"] as? [String] else { return [] }
@@ -42,7 +42,7 @@ func listExternalDisks() -> [ExternalDisk] {
         guard id.range(of: "^disk[0-9]+$", options: .regularExpression) != nil,
               let info = diskutilPlist(["info", "-plist", id]),
               (info["Internal"] as? Bool) != true else { return nil }
-        let name = (info["MediaName"] as? String) ?? "Disque"
+        let name = (info["MediaName"] as? String) ?? "Disk"
         let size = (info["TotalSize"] as? NSNumber)?.int64Value ?? (info["Size"] as? NSNumber)?.int64Value ?? 0
         return ExternalDisk(id: id, name: name, size: size)
     }
@@ -55,7 +55,7 @@ func findMkntfs() -> String? {
         .first { FileManager.default.isExecutableFile(atPath: $0) }
 }
 
-/// Garde lettres, chiffres, espace, « _ » et « - » (32 caractères max) : le nom finit dans une commande shell.
+/// Keeps letters, digits, space, "_" and "-" (32 characters max): the name ends up in a shell command.
 func sanitizeLabel(_ s: String) -> String {
     let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: " _-"))
     let cleaned = String(s.unicodeScalars.filter { allowed.contains($0) && $0.isASCII })
@@ -63,7 +63,7 @@ func sanitizeLabel(_ s: String) -> String {
     return String((trimmed.isEmpty ? "NTFS" : trimmed).prefix(32))
 }
 
-// MARK: - Logique
+// MARK: - Logic
 
 final class ViewModel: ObservableObject {
     @Published var disks: [ExternalDisk] = []
@@ -84,9 +84,9 @@ final class ViewModel: ObservableObject {
 
     func format() {
         guard let disk = selectedDisk, let mkntfs = mkntfsPath, !busy else { return }
-        // Revérification au dernier moment : le disque doit toujours être externe.
+        // Last-moment re-check: the disk must still be external.
         guard listExternalDisks().contains(disk) else {
-            log += "Le disque \(disk.id) a changé ou a été débranché. Rien n'a été effacé.\n"
+            log += "Disk \(disk.id) has changed or was unplugged. Nothing was erased.\n"
             refresh()
             return
         }
@@ -106,15 +106,15 @@ final class ViewModel: ObservableObject {
         let apple = "do shell script \"\(escaped) 2>&1\" with administrator privileges"
 
         busy = true
-        log = "Formatage de \(d) en NTFS (nom : \(name))…\n"
+        log = "Formatting \(d) as NTFS (name: \(name))…\n"
         DispatchQueue.global().async {
             let r = run("/usr/bin/osascript", ["-e", apple])
             let out = String(data: r.output, encoding: .utf8) ?? ""
             DispatchQueue.main.async {
                 self.log += out
                 self.log += r.status == 0
-                    ? "\n✅ Terminé ! Le disque est en NTFS : tu peux le brancher sur un PC Windows.\n"
-                    : "\n❌ Échec ou annulation (code \(r.status)).\n"
+                    ? "\n✅ Done! The disk is now NTFS: you can plug it into a Windows PC.\n"
+                    : "\n❌ Failed or cancelled (code \(r.status)).\n"
                 self.busy = false
                 self.refresh()
             }
@@ -130,33 +130,33 @@ struct ContentView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Formater un disque en NTFS").font(.title2.bold())
-            Text("1. Branche ton disque ou ta clé USB.   2. Choisis-le ci-dessous.   3. Clique sur Formater.")
+            Text("Format a disk as NTFS").font(.title2.bold())
+            Text("1. Plug in your disk or USB drive.   2. Select it below.   3. Click Format.")
                 .foregroundStyle(.secondary)
 
             if vm.mkntfsPath == nil {
-                Text("❌ L'outil de formatage est introuvable dans l'app. Télécharge à nouveau l'application complète.")
+                Text("❌ The formatting tool is missing from the app. Please download the full app again.")
                     .foregroundStyle(.red)
             }
 
             HStack {
-                Picker("Disque", selection: $vm.selection) {
-                    if vm.disks.isEmpty { Text("Aucun disque externe").tag("") }
+                Picker("Disk", selection: $vm.selection) {
+                    if vm.disks.isEmpty { Text("No external disk").tag("") }
                     ForEach(vm.disks) { Text($0.title).tag($0.id) }
                 }
-                Button("Actualiser") { vm.refresh() }.disabled(vm.busy)
+                Button("Refresh") { vm.refresh() }.disabled(vm.busy)
             }
 
             HStack {
-                Text("Nom du volume")
+                Text("Volume name")
                 TextField("NTFS", text: $vm.label).frame(maxWidth: 200)
             }
 
-            Text("⚠️ Tout le contenu du disque sélectionné sera effacé, y compris toutes ses partitions.")
+            Text("⚠️ Everything on the selected disk will be erased, including all its partitions.")
                 .foregroundStyle(.red)
 
             HStack {
-                Button("Formater en NTFS…") { confirming = true }
+                Button("Format as NTFS…") { confirming = true }
                     .disabled(vm.selectedDisk == nil || vm.mkntfsPath == nil || vm.busy)
                 if vm.busy { ProgressView().controlSize(.small) }
             }
@@ -171,7 +171,7 @@ struct ContentView: View {
             .background(.quaternary, in: RoundedRectangle(cornerRadius: 6))
             .frame(minHeight: 120)
 
-            Text("macOS monte les volumes NTFS en lecture seule : pour y écrire, il faut un pilote tiers.")
+            Text("macOS mounts NTFS volumes read-only: writing to them needs a third-party driver.")
                 .font(.footnote).foregroundStyle(.secondary)
         }
         .padding(20)
@@ -184,13 +184,13 @@ struct ContentView: View {
             if !vm.busy { vm.refresh() }
         }
         .confirmationDialog(
-            "Effacer \(vm.selectedDisk?.title ?? "") ?",
+            "Erase \(vm.selectedDisk?.title ?? "")?",
             isPresented: $confirming, titleVisibility: .visible
         ) {
-            Button("Effacer et formater en NTFS", role: .destructive) { vm.format() }
-            Button("Annuler", role: .cancel) {}
+            Button("Erase and format as NTFS", role: .destructive) { vm.format() }
+            Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Cette action est irréversible.")
+            Text("This cannot be undone.")
         }
     }
 }
